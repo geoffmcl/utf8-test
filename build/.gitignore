@@ -9,3 +9,6 @@ bldlog-1.txt
 cmake_install.cmake
 *.dir/*
 *.sln
+Makefile
+utf8-test
+
