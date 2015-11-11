@@ -1,5 +1,6 @@
 *.vcxproj
 *.filters
+*.user
 CMakeCache.txt
 CMakeFiles/*
 Debug/*
@@ -11,4 +12,7 @@ cmake_install.cmake
 *.sln
 Makefile
 utf8-test
+*.sdf
+*.suo
+ipch/*
 
