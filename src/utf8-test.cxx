@@ -5,7 +5,13 @@
  * Licence: GNU GPL version 2
  *
 \*/
-
+/*\
+ * from : http://utfcpp.sourceforge.net/ with some modifications
+ *
+ * Essentially read an input file, line by line
+ * Search for an invalid utf-8 sequences, give length (up to first invlid)
+ *
+\*/
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fstream>

@@ -1,4 +1,4 @@
-# UTF8 TEST Project
+# UTF8 TEST Project 20151209
 
 Found a header only utf8 cpp source at https://sourceforge.net/projects/utfcpp/, and this small project generates a utf8-test app using that header source.
 
@@ -28,9 +28,25 @@ The 'build' directory contains convenient build scripts - build-me.bat and build
  
 Of course the cmake GUI can also be used, setting the source directory, and the binary directory to the 'build' folder. And in Windows, the MSVC IDE can be used if this is the chosen generator.
 
+### Executables
+
+All binaries are experimental. They started as an exercise to understand utf-8 character sequencing. All are WIP!
+
+#### utf8-test.exe
+
+Given an input file, check if there are any invalid utf-8 sequences in the file.
+
+#### uni2utf8.exe
+
+Given an a unicode input file, write out a utf-8.
+
+#### chk-utf8.exe
+
+More tests on being able to recognise, and correctly step over utf-8 character sequences.
+
 Have FUN!
 
 Geoff.  
-20150420
+20151209 - 20150420
 
 ; eof
