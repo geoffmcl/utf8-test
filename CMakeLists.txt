@@ -65,7 +65,23 @@ endif()
 include_directories( src/source )
 
 #################################################
-##### EXECUTABLE #####
+##### LIBRARIES #####
+#################################################
+set(name langdict)
+set(dir src)
+set(${name}_SRCS
+    ${dir}/${name}.cxx
+    )
+set(${name}_HDRS
+    ${dir}/${name}.h
+    )
+add_library( ${name} ${LIB_TYPE} ${${name}_SRCS} ${${name}_HDRS} )
+list(APPEND add_LIBS ${name})
+# deal with install, if any...
+#install( TARGETS ${name} DESTINATION lib )
+
+#################################################
+##### EXECUTABLES #####
 #################################################
 
 # utf8-test EXECUTABLE from [F:\Projects\utf8\src],
@@ -114,5 +130,37 @@ if (MSVC)
 endif ()
 # deal with install, if any...
 #install( TARGETS ${name} DESTINATION bin )
+
+set(name chk-BOM)
+set(dir src)
+set(${name}_SRCS
+    ${dir}/${name}.cxx
+    )
+add_executable( ${name} ${${name}_SRCS} )
+if (add_LIBS)
+    target_link_libraries( ${name} ${add_LIBS} )
+endif ()
+if (MSVC)
+    set_target_properties( ${name} PROPERTIES DEBUG_POSTFIX d )
+endif ()
+# deal with install, if any...
+#install( TARGETS ${name} DESTINATION bin )
+
+if (WIN32)
+    set(name chk-con)
+    set(dir src)
+    set(${name}_SRCS
+        ${dir}/${name}.cxx
+        )
+    add_executable( ${name} WIN32 ${${name}_SRCS} )
+    if (add_LIBS)
+        target_link_libraries( ${name} ${add_LIBS} )
+    endif ()
+    if (MSVC)
+        set_target_properties( ${name} PROPERTIES DEBUG_POSTFIX d )
+    endif ()
+    # deal with install, if any...
+    #install( TARGETS ${name} DESTINATION bin )
+endif ()
 
 # eof

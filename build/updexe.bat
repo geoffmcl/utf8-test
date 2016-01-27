@@ -22,7 +22,7 @@
 @echo.
 @echo Files are the SAME... Nothing done...
 @echo.
-@goto END
+@goto DNFILE1
 
 :NOFC4
 @echo Can NOT run fc4! so doing copy...
@@ -33,6 +33,43 @@ copy %TMPSRC% %TMPDST%
 @echo.
 @echo Done file update...
 @echo.
+:DNFILE1
+
+@set TMPFIL1=chk-BOM.exe
+@set TMPFIL2=%TMPFIL1%
+@set TMPSRC=Release\%TMPFIL1%
+@if NOT EXIST %TMPSRC% goto ERR1
+@echo Current source %TMPSRC%
+@call dirmin %TMPSRC%
+
+@if NOT EXIST %TMPDIR%\nul goto ERR2
+@set TMPDST=%TMPDIR%\%TMPFIL2%
+@if NOT EXIST %TMPDST% goto DOCOPY2
+
+@echo Current destination %TMPDST%
+@call dirmin %TMPDST%
+
+@REM Compare
+@fc4 -q -v0 -b %TMPSRC% %TMPDST% >nul
+@if ERRORLEVEL 2 goto NOFC42
+@if ERRORLEVEL 1 goto DOCOPY2
+@echo.
+@echo Files are the SAME... Nothing done...
+@echo.
+@goto DNFILE2
+
+:NOFC42
+@echo Can NOT run fc4! so doing copy...
+:DOCOPY2
+copy %TMPSRC% %TMPDST%
+@if NOT EXIST %TMPDST% goto ERR3
+@call dirmin %TMPDST%
+@echo.
+@echo Done file update...
+@echo.
+:DNFILE2
+
+
 @goto END
 
 :ERR1
