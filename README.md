@@ -1,4 +1,4 @@
-# UTF8 TEST Project 20151209
+# UTF8 TEST Project 20160127
 
 Found a header only utf8 cpp source at https://sourceforge.net/projects/utfcpp/, and this small project generates a utf8-test app using that header source.
 
@@ -44,9 +44,21 @@ Given an a unicode input file, write out a utf-8.
 
 More tests on being able to recognise, and correctly step over utf-8 character sequences.
 
+#### chk-con.exe
+
+For WIN32 only - Is a WinMain app, but opens a console, and re-sets stdout and stdin so printf output has somewhere to go.
+
+#### chk-BOM.exe
+
+Read the first up to 8 bytes from the input files, and attempt to identify if it starts with a known BOM.
+
+#### langdict.lib
+
+Some experiments including and compiling and outputting UTF-8 characters. Used by chk-con only.
+
 Have FUN!
 
 Geoff.  
-20151209 - 20150420
+20160127 - 20151209 - 20150420
 
 ; eof
