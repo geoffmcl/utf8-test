@@ -27,6 +27,9 @@
 :NOFC4
 @echo Can NOT run fc4! so doing copy...
 :DOCOPY
+@echo Will do: 'copy %TMPSRC% %TMPDST%'
+@choice /D N /T 10 /M "Pausing for 10 seconds. Def=N"
+if ERRORLEVEL 2 goto DNFILE1
 copy %TMPSRC% %TMPDST%
 @if NOT EXIST %TMPDST% goto ERR3
 @call dirmin %TMPDST%
@@ -61,6 +64,9 @@ copy %TMPSRC% %TMPDST%
 :NOFC42
 @echo Can NOT run fc4! so doing copy...
 :DOCOPY2
+@echo Will do: 'copy %TMPSRC% %TMPDST%'
+@choice /D N /T 10 /M "Pausing for 10 seconds. Def=N"
+if ERRORLEVEL 2 goto DNFILE2
 copy %TMPSRC% %TMPDST%
 @if NOT EXIST %TMPDST% goto ERR3
 @call dirmin %TMPDST%
