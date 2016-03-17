@@ -4,7 +4,7 @@
 @set TMPPRJ=utf8-test
 @set TMPSRC=..
 @set TMPBGN=%TIME%
-@set TMPINS=..\..\3rdParty
+@set TMPINS=..\..\software
 @set DOTINST=0
 @set TMPLOG=bldlog-1.txt
 
@@ -22,8 +22,8 @@
 
 @if NOT EXIST %TMPSRC%\nul goto NOSRC
 
-@echo Build source %TMPSRC%... all output to build log %TMPLOG%
-@echo Build source %TMPSRC%... all output to build log %TMPLOG% >> %TMPLOG%
+@echo Build source %TMPSRC% - all output to build log %TMPLOG%
+@echo Build source %TMPSRC% - all output to build log %TMPLOG% >> %TMPLOG%
 
 @if EXIST build-cmake.bat (
 @call build-cmake >> %TMPLOG%
@@ -31,30 +31,30 @@
 
 @if NOT EXIST %TMPSRC%\CMakeLists.txt goto NOCM
 
-cmake %TMPSRC% %TMPOPTS% >> %TMPLOG% 2>&1
+@echo Doing 'cmake %TMPSRC% %TMPOPTS%'
+@echo Doing 'cmake %TMPSRC% %TMPOPTS%' >> %TMPLOG%
+@cmake %TMPSRC% %TMPOPTS% >> %TMPLOG% 2>&1
 @if ERRORLEVEL 1 goto ERR1
 
-cmake --build . --config Debug  >> %TMPLOG% 2>&1
+@echo Doing 'cmake --build . --config Debug'
+@echo Doing 'cmake --build . --config Debug'  >> %TMPLOG%
+@cmake --build . --config Debug  >> %TMPLOG% 2>&1
 @if ERRORLEVEL 1 goto ERR2
 
-cmake --build . --config Release  >> %TMPLOG% 2>&1
+@echo Doing 'cmake --build . --config Release'
+@echo Doing 'cmake --build . --config Release'  >> %TMPLOG%
+@cmake --build . --config Release  >> %TMPLOG% 2>&1
 @if ERRORLEVEL 1 goto ERR3
 
 @fa4 "***" %TMPLOG%
 @call elapsed %TMPBGN%
 @echo Appears a successful build... see %TMPLOG%
 
-@if "%DOTINST%x" == "0x" goto DNTINST
-@echo Building installation zips... moment...
-@call build-zips Debug
-@call build-zips Release
-@echo Done installation zips...
-:DNTINST
-
 @echo.
-@echo No install at this time, but there is a updexe.bat to copy the EXE to c:\MDOS...
+@echo No install at this time...
+@echo There may be an updexe.bat...
+@echo.
 @goto END
-
 
 @echo Continue with install? Only Ctrl+c aborts...
 

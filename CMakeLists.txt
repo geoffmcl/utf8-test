@@ -3,7 +3,7 @@
 cmake_minimum_required( VERSION 2.8.8 )
 
 # CMakeScripts or use the ones that come by default with CMake.
-# set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 project( utf8-test )
 
@@ -60,6 +60,19 @@ if(BUILD_SHARED_LIB)
 else()
    message(STATUS "*** Option BUILD_SHARED_LIB is OFF ${LIB_TYPE}")
 endif()
+
+#  DIRENT_FOUND - System has dirent
+#  DIRENT_INCLUDE_DIRS - The dirent.h include directories
+#  DIRENT_LIBRARIES - The static library needed to use dirent
+find_package( Dirent )
+if (DIRENT_FOUND)
+    message(STATUS "*** Found Dirent inc ${DIRENT_INCLUDE_DIRS}, lib ${DIRENT_LIBRARIES}")
+    include_directories( ${DIRENT_INCLUDE_DIRS} )
+    list(APPEND add_LIBS ${DIRENT_LIBRARIES} )
+    add_definitions( -DHAVE_DIRENT_H=1 )
+else ()
+    message(STATUS "*** Dirent NOT FOUND!")
+endif ()
 
 # for utf8.h header
 include_directories( src/source )
