@@ -75,6 +75,15 @@
 #define DOSLIKE
 #endif
 #endif
+#ifndef ISDIGIT
+#define ISDIGIT(a) ( ( a >= '0' ) && ( a <= '9' ) )
+#endif
+#ifndef TEST_VERSION
+#define TEST_VERSION "1.0.1"
+#endif
+#ifndef TEST_DATE
+#define TEST_DATE "2016-11-26"
+#endif
 
 static const char *module = "chk-utf8";
 
@@ -82,12 +91,31 @@ static const char *usr_input = 0;
 static bool use_printf = true; //false;
 static bool use_wprintf = true;
 static int utf_output = 0;
+static int verbosity = 0;
+static int err_max = 5;
+
+#define VERB1 ( verbosity >= 1 )
+#define VERB2 ( verbosity >= 2 )
+#define VERB5 ( verbosity >= 5 )
+#define VERB9 ( verbosity >= 9 )
+
+static int seq_errs = 0;
+static int multi_count = 0;
+static int char_count = 0;
+static int line_count = 0;
+
+void show_version()
+{
+    printf("%s: version: " TEST_VERSION ", date: " TEST_DATE "\n", module);
+}
 
 void give_help( char *name )
 {
-    printf("%s: usage: [options] usr_input\n", module);
-    printf("Options:\n");
+    show_version();
+    printf("usage: %s [options] usr_input\n", module);
+    printf("options:\n");
     printf(" --help  (-h or -?) = This help and exit(0)\n");
+    printf(" --verb[n]     (-v) = Bump or set verbosity. n=0,1,2,5,9 (def=%d)\n", verbosity);
     printf(" Given an input file, scan it and report any invalid\n");
     printf(" UTF-8 byte sequences.\n");
     // TODO: More help
@@ -111,7 +139,20 @@ int parse_args( int argc, char **argv )
                 give_help(argv[0]);
                 return 2;
                 break;
-            // TODO: Other arguments
+            case 'v':
+                sarg++;
+                verbosity++;
+                while (*sarg && !ISDIGIT(*sarg)) {
+                    if (*sarg == 'v')
+                        verbosity++;
+                    sarg++;
+                }
+                if (ISDIGIT(*sarg))
+                    verbosity = atoi(sarg);
+                if (VERB1)
+                    printf("Set verbosity to %d\n", verbosity);
+                break;
+                // TODO: Other arguments
             default:
                 printf("%s: Unknown argument '%s'. Try -? for help...\n", module, arg);
                 return 1;
@@ -126,7 +167,8 @@ int parse_args( int argc, char **argv )
         }
     }
     if (!usr_input) {
-        printf("%s: No user input found in command!\n", module);
+        give_help(argv[0]);
+        printf("%s: Error: No user input found in command!\n", module);
         return 1;
     }
     return 0;
@@ -234,19 +276,23 @@ void printf_hex( const char *buf, size_t len )
 //u_long readNextChar(char *& p, int len) 
 int getNextSeqLen(char *& p, int len, u_long *puc) 
 {  
-    u_char c1, c2, *ptr = (u_char *) p;
+    u_char c1, c2, first, *ptr = (u_char *) p;
     u_long uc = 0;
     int seqlen = 0;
     int datalen = len; // available length of p ...;    
+    int i, j;
 
     if( datalen < 1 )
     {
         // malformed data, do something !!!
+        if (VERB1) {
+            printf("Err: No data length!\n");
+        }
         return -1;
     }
 
     c1 = ptr[0];
-
+    first = c1;
     if( (c1 & 0x80) == 0 )
     {
         uc = (u_long) (c1 & 0x7F);
@@ -270,22 +316,52 @@ int getNextSeqLen(char *& p, int len, u_long *puc)
     else
     {
         // malformed data, do something !!!
+        if (VERB1) {
+            printf("Err: First char %02x NOT a valid lead byte!\n", (c1 & 0xff));
+        }
         return -1;
     }
 
     if( seqlen > datalen )
     {
         // malformed data, do something !!!
+        if (VERB1) {
+            printf("Err: Sequence len %d GT data len %d\n", seqlen, datalen);
+        }
         return -1;
     }
 
-    for(int i = 1; i < seqlen; ++i)
+    for(i = 1; i < seqlen; ++i)
     {
         c1 = ptr[i];
 
         if( (c1 & 0xC0) != 0x80 )
         {
             // malformed data, do something !!!
+            if ((VERB9) || ((seq_errs < err_max) && VERB1)) 
+            {
+                switch (seqlen)
+                {
+                case 2:
+                    printf("Err: First uchar %02x, len %d, followed by %02x is invalid!\n", (first & 0xff),
+                        seqlen, (c1 & 0xff));
+                    break;
+                case 3:
+                case 4:
+                    if (i > 1) {
+                        printf("Err: First uchars %02x, ", (first & 0xff));
+                        for (j = 1; j < i; j++) {
+                            printf("%02x, ", (ptr[j] & 0xff));
+                        }
+                        printf("len %d, followed by %02x is invalid!\n", seqlen, (c1 & 0xff));
+                    }
+                    else {
+                        printf("Err: First uchar %02x, len %d, followed by %02x is invalid!\n", (first & 0xff),
+                            seqlen, (c1 & 0xff));
+                    }
+                    break;
+                }
+            }
             return -1;
         }
     }
@@ -342,19 +418,15 @@ int getNextSeqLen(char *& p, int len, u_long *puc)
     {
         uc = ((uc << 6) | (u_long)(ptr[i] & 0x3F));
     }
-    *puc = uc;
+    *puc = uc;      // unicodeChar; 
     p += seqlen;
-    return seqlen;  // unicodeChar; 
+    return seqlen;  
 }
 
 int chk_buffer_sequences( uint8_t *buf, long ilen )
 {
     char *p = (char *)buf;
     int c, i, res, len = ilen;
-    int seq_errs = 0;
-    int multi_count = 0;
-    int char_count = 0;
-    int line_count = 0;
     char *nxt;
     for (i = 0; i < len; i++) {
         u_long uc = 0;
