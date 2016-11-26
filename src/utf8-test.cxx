@@ -308,8 +308,11 @@ int main( int argc, char **argv )
 {
     int iret = 0;
     iret = parse_args(argc,argv);
-    if (iret)
+    if (iret) {
+        if (iret == 2)
+            iret = 0;
         return iret;
+    }
 
     if (valid_utf8_file(usr_input)) {
         if (VERB1) {
