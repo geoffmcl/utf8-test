@@ -15,4 +15,8 @@ utf8-test
 *.sdf
 *.suo
 ipch/*
+chk-BOM
+chk-utf8
+liblangdict.a
+uni2utf8
 
