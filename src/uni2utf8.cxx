@@ -85,12 +85,12 @@ int main()
         std::cin >> charcode; 
         if (charcode == 0)
             break;
-        auto x = unicode_to_utf8(charcode);
+        std::deque<int> x = unicode_to_utf8(charcode);
         //for(auto c : x)
         off = 0;
         for (std::deque<int>::iterator it = x.begin(); it != x.end(); it++)
         {
-            auto c = *it;
+            int c = *it;
             std::cout << "\\x" << std::hex << c << " ";
             if (off < MY_MX_BUF) 
                 chars[off++] = (uint8_t)c;
@@ -104,3 +104,4 @@ int main()
 }
 
 // eof = utf8-2-unicode.cxx
+

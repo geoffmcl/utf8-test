@@ -14,6 +14,9 @@
 #include <Windows.h>
 #include <io.h>
 #include <fcntl.h>
+#else
+typedef unsigned int UINT;
+typedef UINT DWORD;
 #endif
 
 // other includes
@@ -224,6 +227,7 @@ void eb_puts(const char *s)
 #endif
 }				/* eb_puts */
 
+#ifdef _WIN32
 static UINT oldcp = 0;
 static int prevmode = 0;
 BOOL CALLBACK EnumCodePagesProc(LPTSTR lpCodePageString)
@@ -256,6 +260,7 @@ void reset_console()
     }
     oldcp = 0;
 }
+#endif // #ifdef _WIN32
 
 void printf_hex( const char *buf, size_t len )
 {
@@ -453,6 +458,7 @@ int chk_buffer_sequences( uint8_t *buf, long ilen )
 
 
 ////////////////////////////////////////////////////////////////////
+#ifdef _WIN32
 
 int chk_utf8_buffer(uint8_t *buf, long len)
 {
@@ -540,6 +546,8 @@ int chk_utf8_buffer(uint8_t *buf, long len)
     return iret;
 }
 
+#endif // #ifdef _WIN32
+
 
 int chk_utf8()
 {
@@ -588,7 +596,10 @@ int chk_utf8()
         return 1;
     }
     iret |= chk_buffer_sequences(buf,len);
+#ifdef _WIN32
     iret |= chk_utf8_buffer(buf,len);
+#endif // #ifdef _WIN32
+    
     free(buf);
     fprintf(stderr,"%s: Output %d UTF-8 characters found.\n", module, utf_output);
     return iret;
