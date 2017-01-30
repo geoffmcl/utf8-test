@@ -1,1 +1,7 @@
 bldlog-1.txt
+chk-BOM
+chk-utf8
+uni2utf8
+utf8-test
+liblangdict.a
+
