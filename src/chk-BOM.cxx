@@ -190,9 +190,9 @@ int process_file( const char *file )
     if (fp) {
         len = fread(buf,1,8,fp);
         fclose(fp);
-        printf("%s: Reading file '%s' - %d bytes...\n", module, file, len);
+        printf("%s: Reading file '%s' - %d bytes...\n", module, file, (int)len);
         if (len > 0) {
-            printf("Hex:%d: ", len);
+            printf("Hex:%d: ", (int)len);
             show_hexified((char *)buf, len, 0);
         }
         if ((len >= 3) && ( buf[0] == 0xef ) && (buf[1] == 0xbb) && (buf[2] == 0xbf)) {

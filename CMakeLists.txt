@@ -43,6 +43,7 @@ if(WIN32 AND MSVC)
     set( CMAKE_DEBUG_POSTFIX "d" )
 else()
     # items for unix
+    set(WARNING_FLAGS "${WARNING_FLAGS} -Wno-write-strings -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function")
 endif()
 
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNING_FLAGS} ${MSVC_FLAGS} -D_REENTRANT" )

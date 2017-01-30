@@ -257,7 +257,7 @@ int utf8_test(const char * file)
         // Get the line length (at least for the valid part)
         int length = utf8::distance(line.begin(), end_it);
         if (VERB1) {
-            if (len == length) {
+            if ((int)len == length) {
                 cout << "Length of line " << line_count << " is " << length << endl;
             } else {
                 cout << "Length of line " << line_count << " is " << len << " but only " << length << " valid." <<  endl;
