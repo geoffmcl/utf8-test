@@ -83,7 +83,7 @@ void give_help( char *name )
     printf("Options:\n");
     printf(" --help  (-h or -?) = This help and exit(2)\n");
     printf(" --verb[n]     (-v) = Bump or set verbosity. n=0,1,2,5,9 (def=%d)\n", verbosity );
-    printf(" --full        (-f) = Do full test even if sample passes simple versification. (def=%s)\n",
+    printf(" --full        (-f) = Do full test even if sample passes simple verification. (def=%s)\n",
         (do_full_test ? "On" : "Off"));
     // TODO: More help
 }
@@ -228,16 +228,22 @@ int utf8_test(const char * file)
 
     unsigned line_count = 1;
     int error_count = 0;
-    size_t len, rem;
+    size_t len, rem, dist;
     string line, ok, end;
     // Play with all the lines in the file
     while (getline(fs8, line)) {
-        len = line.size();
-       // check for invalid utf-8 (for a simple yes/no check, there is also utf8::is_valid function)
-        string::iterator end_it = utf8::find_invalid(line.begin(), line.end());
-        if (end_it != line.end()) {
+        len = line.size();  // NOTE: This is BYTE count
+        string::iterator line_bgn = line.begin();
+        string::iterator line_end = line.end();
+        dist = utf8::distance(line_bgn, line_end);  // NOTE: This a CHARACTER length
+        // check for invalid utf-8 (for a simple yes/no check, there is also utf8::is_valid function)
+        // string::iterator end_it = utf8::find_invalid(line.begin(), line.end());
+        string::iterator end_it = utf8::find_invalid(line_bgn, line_end);
+        //if (end_it != line.end()) {
+        if (end_it != line_end) {
             if (VERB1) {
-                ok = string(line.begin(), end_it);
+                // ok = string(line.begin(), end_it);
+                ok = string(line_bgn, end_it);
                 cout << "Invalid UTF-8 encoding detected at line " << line_count << ", offet " << ok.size() << endl;
                 if (VERB2) {
                     cout << "This part is fine: " << ok << "\n";
@@ -255,27 +261,36 @@ int utf8_test(const char * file)
         }
 
         // Get the line length (at least for the valid part)
-        int length = utf8::distance(line.begin(), end_it);
+        // int length = utf8::distance(line.begin(), end_it);
+        size_t length = utf8::distance(line_bgn, end_it);   // NOTE: This is CHARACTER count, NOT byte count
         if (VERB1) {
-            if ((int)len == length) {
-                cout << "Length of line " << line_count << " is " << length << endl;
+            cout << "Line " << line_count << " is " << len << " bytes, " << dist << " chars";
+            if (dist == length) {
+                if (length)
+                    cout << ", all valid";
+                else
+                    cout << ", zero length";
             } else {
-                cout << "Length of line " << line_count << " is " << len << " but only " << length << " valid." <<  endl;
+                cout << ", but only " << length << " valid";
             }
+            cout << "." << endl;
         }
 
-        // Convert it to utf-16
-        vector<unsigned short> utf16line;
-        utf8::utf8to16(line.begin(), end_it, back_inserter(utf16line));
+        if (length) {
+            // Convert it to utf-16, just for FUN
+            vector<unsigned short> utf16line;
+            utf8::utf8to16(line_bgn, end_it, back_inserter(utf16line));
+            // utf8::utf8to16(line.begin(), end_it, back_inserter(utf16line));
 
-        // And back to utf-8
-        string utf8line; 
-        utf8::utf16to8(utf16line.begin(), utf16line.end(), back_inserter(utf8line));
+            // And back to utf-8, just for FUN
+            string utf8line;
+            utf8::utf16to8(utf16line.begin(), utf16line.end(), back_inserter(utf8line));
 
-        // Confirm that the conversion went OK:
-        if (utf8line != string(line.begin(), end_it)) {
-            if (VERB1) {
-                cerr << "Error in UTF-16 conversion at line: " << line_count << endl;        
+            // Confirm that the conversion went OK:
+            if (utf8line != string(line_bgn, end_it)) {
+                if (VERB1) {
+                    cerr << "Error in UTF-16 conversion at line: " << line_count << endl;
+                }
             }
         }
 
