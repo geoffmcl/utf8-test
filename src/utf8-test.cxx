@@ -266,10 +266,14 @@ int utf8_test(const char * file)
         if (VERB1) {
             cout << "Line " << line_count << " is " << len << " bytes, " << dist << " chars";
             if (dist == length) {
-                if (length)
+                if (length) {
                     cout << ", all valid";
-                else
+                    if (length == len)
+                        cout << ", but no multibyte chars";
+                }
+                else {
                     cout << ", zero length";
+                }
             } else {
                 cout << ", but only " << length << " valid";
             }
