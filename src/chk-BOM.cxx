@@ -1,25 +1,12 @@
 /*\
  * chk-BOM.cxx
  *
- * Copyright (c) 2015 - Geoff R. McLane
+ * Copyright (c) 2015-2017 - Geoff R. McLane
  * Licence: GNU GPL version 2
  *
+ * 20171223 - Add verbosity
 \*/
 
-/*
-# BOM Type    Hex          = Decimal
-# UTF-8       EF BB BF     = 239 187 191        //  0xEF,0xBB,0xBF
-# UTF-16 (BE) FE FF        = 254 255
-# UTF-16 (LE) FF FE        = 255 254 
-# UTF-32 (BE) 00 00 FE FF  = 0 0 254 255 
-# UTF-32 (LE) FF FE 00 00  = 255 254 0 0 
-# UTF-7       2B 2F 76, and one of: [38|39|2B|2F] 43 47 118, and one of: [56|57|43|47] +/v, and one of 8 9 + / 
-# UTF-1       F7 64 4C     = 247 100 76
-# UTF-EBCDIC  DD 73 66 73  = 221 115 102 115
-# SCSU        0E FE FF     = 14 254 255 
-# BOCU-1      FB EE 28 +optional FF 251 238 40 +optional 255
-# GB-18030    84 31 95 33  = 132 49 149 51
-*/
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -33,6 +20,9 @@
 #include "langdict.h"
 
 // other includes
+#ifndef ISDIGIT
+#define ISDIGIT(a) ( ( a >= '0' ) && ( a <= '9' ) )
+#endif
 
 #define DEF_IN_FILE "F:\\Projects\\utf8\\src\\langdict.cxx"
 #ifndef SPRTF
@@ -40,16 +30,94 @@
 #endif
 
 static const char *module = "chk-BOM";
+/*
+# BOM Type    Hex          = Decimal
+# UTF-8       EF BB BF     = 239 187 191        //  0xEF,0xBB,0xBF
+# UTF-16 (BE) FE FF        = 254 255
+# UTF-16 (LE) FF FE        = 255 254
+# UTF-32 (BE) 00 00 FE FF  = 0 0 254 255
+# UTF-32 (LE) FF FE 00 00  = 255 254 0 0
+# UTF-7       2B 2F 76, and one of: [38|39|2B|2F] 43 47 118, and one of: [56|57|43|47] +/v, and one of 8 9 + /
+# UTF-1       F7 64 4C     = 247 100 76
+# UTF-EBCDIC  DD 73 66 73  = 221 115 102 115
+# SCSU        0E FE FF     = 14 254 255
+# BOCU-1      FB EE 28 +optional FF 251 238 40 +optional 255
+# GB-18030    84 31 95 33  = 132 49 149 51
+*/
 
+enum bomtype {
+    nobom,
+    utf8,
+    utf16be,
+    utf16le,
+    utf32be,
+    utf32le,
+    utf7,
+    utf1,
+    utfeb,
+    scsu,
+    bocu,
+    gb18
+};
+
+typedef std::vector<bomtype> vBT;
+
+
+typedef struct tagBomList {
+    bomtype type;
+    const char *name;
+    const char *hex;
+    const char *dec;
+}BomList, *PBomList;
+
+
+//# BOM Type    Hex = Decimal
+BomList bom_list[] = {
+    { utf8, "UTF-8", "EF BB BF", "239 187 191" },        //  0xEF,0xBB,0xBF
+    { utf16be, "UTF-16 (BE)", "FE FF", "254 255" },
+    { utf16le, "UTF-16 (LE)", "FF FE", "255 254" },
+    { utf32be, "UTF-32 (BE)", "00 00 FE FF", "0 0 254 255" },
+    { utf32le, "UTF-32 (LE)", "FF FE 00 00", "255 254 0 0" },
+    { utf7, "UTF-7", "2B 2F 76 [38|39|2B|2F]", "43 47 118 [56|57|43|47]" }, // +/ v, and one of 8 9 + /
+    { utf1, "UTF-1", "F7 64 4C", "247 100 76" },
+    { utfeb, "UTF-EBCDIC", "DD 73 66 73", "221 115 102 115" },
+    { scsu, "SCSU", "0E FE FF", "14 254 255" },
+    { bocu, "BOCU-1", "FB EE 28 +o FF", "251 238 40 +o 255" },
+    { gb18, "GB-18030", "84 31 95 33", "132 49 149 51" },
+    // last
+    { nobom, 0, 0, 0 }
+};
+
+const char *get_bt(bomtype bt)
+{
+    PBomList pb = &bom_list[0];
+    while (pb->name) {
+        if (pb->type == bt)
+            return pb->name;
+        pb++;
+    }
+    return "N/A";
+
+}
+
+static int verbosity = 0;
 static const char *usr_input = 0;
 typedef std::vector<std::string> vSTG;
 
 static vSTG vBoms;
+static vBT vTypes;
+
+#define VERB1 ( verbosity >= 1 )
+#define VERB2 ( verbosity >= 2 )
+#define VERB5 ( verbosity >= 5 )
+#define VERB9 ( verbosity >= 9 )
+
 void give_help( char *name )
 {
     printf("%s: usage: [options] usr_input\n", module);
     printf("Options:\n");
     printf(" --help  (-h or -?) = This help and exit(0)\n");
+    printf(" --verb[n]     (-v) = Bump or set verbosity. n=0,1,2,5,9 (def=%d)\n", verbosity);
     // TODO: More help
     printf("\n");
     printf(" Given an input file, open and read initial bytes, seeking\n");
@@ -95,6 +163,7 @@ DiskType is_file_or_directory ( const char * path )
 	return MDT_NONE;
 }
 
+size_t get_last_file_size() { return buf.st_size; }
 
 
 int parse_args( int argc, char **argv )
@@ -115,7 +184,20 @@ int parse_args( int argc, char **argv )
                 give_help(argv[0]);
                 return 2;
                 break;
-            // TODO: Other arguments
+            case 'v':
+                sarg++;
+                verbosity++;
+                while (*sarg && !ISDIGIT(*sarg)) {
+                    if (*sarg == 'v')
+                        verbosity++;
+                    sarg++;
+                }
+                if (ISDIGIT(*sarg))
+                    verbosity = atoi(sarg);
+                if (VERB9)
+                    printf("Set verbosity to %d\n", verbosity);
+                break;
+                // TODO: Other arguments
             default:
                 printf("%s: Unknown argument '%s'. Try -? for help...\n", module, arg);
                 return 1;
@@ -180,65 +262,79 @@ void show_hexified(char *from, int hlen, int iflag)
 }
 
 
-int process_file( const char *file ) 
+int process_file( const char *file, size_t size ) 
 {
     int iret = 0;
     size_t len;
     unsigned char buf[8];
-    memset(buf,0,8);
+    bomtype bt = nobom;
+    memset(buf,0,sizeof(buf));
     FILE *fp = fopen(file,"rb");
     if (fp) {
         len = fread(buf,1,8,fp);
         fclose(fp);
-        printf("%s: Reading file '%s' - %d bytes...\n", module, file, (int)len);
-        if (len > 0) {
+        if (VERB2)
+            printf("%s: Reading file '%s' - %d bytes, of total %d...\n", module, file, (int)len, (int)size);
+        if ((len > 0) && VERB5) {
             printf("Hex:%d: ", (int)len);
-            show_hexified((char *)buf, len, 0);
+            show_hexified((char *)buf, (int)len, 0);
         }
         if ((len >= 3) && ( buf[0] == 0xef ) && (buf[1] == 0xbb) && (buf[2] == 0xbf)) {
-            printf("%s: Has a UTF-8 BOM\n", module);
+            bt = utf8;
+            if (VERB2) printf("%s: Has a UTF-8 BOM\n", module);
             iret = 1;
         } else if ((len >= 2) && ( buf[0] == 0xfe ) && (buf[1] == 0xff) ) {
-            printf("%s: Has a UTF-16 (BE) BOM\n", module);
+            bt = utf16be;
+            if (VERB2) printf("%s: Has a UTF-16 (BE) BOM\n", module);
             iret = 1;
         } else if ((len >= 2) && ( buf[0] == 0xff ) && (buf[1] == 0xfe) ) {
-            printf("%s: Has a UTF-16 (LE) BOM\n", module);
+            bt = utf16le;
+            if (VERB2) printf("%s: Has a UTF-16 (LE) BOM\n", module);
             iret = 1;
         } else if ((len >= 4) && ( buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0xfe) && (buf[3] == 0xff)) {
-            printf("%s: Has a UTF-32 (BE) BOM\n", module);
+            bt = utf32be;
+            if (VERB2) printf("%s: Has a UTF-32 (BE) BOM\n", module);
             iret = 1;
         } else if ((len >= 4) && ( buf[0] == 0xff) && (buf[1] == 0xfe) && (buf[2] == 0) && (buf[3] == 0)) {
-            printf("%s: Has a UTF-32 (LE) BOM\n", module);
+            bt = utf32le;
+            if (VERB2) printf("%s: Has a UTF-32 (LE) BOM\n", module);
             iret = 1;
         } else if ((len >= 4) && ( buf[0] == 0x2b) && (buf[1] == 0x2f) && (buf[2] == 0x76) &&
             ((buf[3] == 0x38) || (buf[3] == 0x39) || (buf[3] == 0x2B) || (buf[3] == 0x2f))   ) {
             // # UTF-7       2B 2F 76, and one of: [38|39|2B|2F] 43 47 118, and one of: [56|57|43|47] +/v, and one of 8 9 + / 
-            printf("%s: Has a UTF-7 BOM\n", module);
+            bt = utf7;
+            if (VERB2) printf("%s: Has a UTF-7 BOM\n", module);
             iret = 1;
         } else if ((len >= 3) && ( buf[0] == 0xf7 ) && (buf[1] == 0x64) && (buf[2] == 0x4c)) {
-            printf("%s: Has a UTF-1 BOM\n", module);
+            bt = utf1;
+            if (VERB2) printf("%s: Has a UTF-1 BOM\n", module);
             iret = 1;
         } else if ((len >= 4) && ( buf[0] == 0xdd) && (buf[1] == 0x73) && (buf[2] == 0x66) && (buf[3] == 0x73)) {
-            printf("%s: Has a UTF-EBCDIC BOM\n", module );
+            bt = utfeb;
+            if (VERB2) printf("%s: Has a UTF-EBCDIC BOM\n", module );
             iret = 1;
         } else if ((len >= 3) && ( buf[0] == 0x0e ) && (buf[1] == 0xfe) && (buf[2] == 0xff)) {
-            printf("%s: Has a SCSU BOM\n", module);
+            bt = scsu;
+            if (VERB2) printf("%s: Has a SCSU BOM\n", module);
             iret = 1;
         } else if ((len >= 3) && ( buf[0] == 0xfb ) && (buf[1] == 0xee) && (buf[2] == 0x28)) {
-            printf("%s: Has a BOCU-1 BOM\n", module);
+            bt = bocu;
+            if (VERB2) printf("%s: Has a BOCU-1 BOM\n", module);
             iret = 1;
         } else if ((len >= 4) && ( buf[0] == 0x84) && (buf[1] == 0x31) && (buf[2] == 0x95) && (buf[3] == 0x33)) {
-            printf("%s: Has a GB-18030 BOM\n", module );
+            bt = gb18;
+            if (VERB2) printf("%s: Has a GB-18030 BOM\n", module );
             iret = 1;
         } else {
-            printf("%s: Does not appear to have a BOM\n", module);
+            if (VERB5) printf("%s: Does not appear to have a BOM\n", module);
         }
     } else {
         printf("%s: Failed to open '%s'!\n", module, file);
         iret = 2;
     }
-    if (iret == 1) {
+    if (bt != nobom) {
         vBoms.push_back(file);
+        vTypes.push_back(bt);
     }
     return iret;
 }
@@ -258,7 +354,7 @@ int process_directory( const char *dir )
                 file = bdir;
                 file += pe->d_name;
                 if (is_file_or_directory(file.c_str()) == MDT_FILE) {
-                    iret |= process_file( file.c_str() ); 
+                    iret |= process_file( file.c_str(), get_last_file_size() ); 
                 }
             }
             pe = readdir(dp);
@@ -282,7 +378,7 @@ int check_input()
     }
     DiskType dt = is_file_or_directory(usr_input);
     if (dt == MDT_FILE) {
-        iret = process_file(usr_input);
+        iret = process_file(usr_input, get_last_file_size() );
     } else {
 #ifdef HAVE_DIRENT_H
         if (dt == MDT_DIR) {
@@ -304,13 +400,21 @@ int check_input()
 size_t show_boms()
 {
     std::string s;
+    bomtype bt = nobom;
     size_t ii, max = vBoms.size();
     printf("%s: Found %d file(s) with BOM\n", module, (int)max );
     for (ii = 0; ii < max; ii++) {
         s = vBoms[ii];
-        printf("%s\n", s.c_str());
+        bt = vTypes[ii];
+        printf("%s", s.c_str());
+        if (VERB1) {
+            const char *cp = get_bt(bt);
+            printf(" - %s", cp);
+        }
+        printf("\n");
     }
-    printf("%s: Shown %d files...\n", module, (int)ii);
+    if (VERB5)
+        printf("%s: Shown %d files...\n", module, (int)ii);
     vBoms.clear();
     return max;
 }
@@ -328,7 +432,8 @@ int main( int argc, char **argv )
 
     iret = check_input(); // actions of app
     show_boms();
-    printf("%s: exit(%d)\n", module, iret );
+    if (VERB5)
+        printf("%s: exit(%d)\n", module, iret );
     return iret;
 }
 
