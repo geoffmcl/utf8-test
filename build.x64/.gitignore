@@ -13,4 +13,5 @@ cmake_install.cmake
 *.user
 *.sln
 x64/*
+.vs/*
 
