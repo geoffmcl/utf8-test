@@ -18,11 +18,13 @@
 @if NOT EXIST "%VS_PATH%" goto NOVS
 @if NOT EXIST "%VC_BAT%" goto NOBAT
 @set BUILD_BITS=%PROCESSOR_ARCHITECTURE%
-@echo Setting environment - CALL "%VC_BAT%" %BUILD_BITS%
-@call "%VC_BAT%" %BUILD_BITS%
-@if ERRORLEVEL 1 goto NOSETUP
 
 @set TMPOPTS=-DCMAKE_INSTALL_PREFIX=%TMPINS%
+@if EXIST X:\3rdParty.x64\nul (
+@set TMPOPTS=%TMPOPTS% -DCMAKE_PREFIX_PATH:PATH=X:\3rdParty.x64
+)
+@set TMPOPTS=%TMPOPTS% -G "%GENERATOR%"
+
 :RPT
 @if "%~1x" == "x" goto GOTCMD
 @set TMPOPTS=%TMPOPTS% %1
@@ -30,14 +32,19 @@
 @goto RPT
 :GOTCMD
 
+@if NOT EXIST %TMPSRC%\nul goto NOSRC
+
 @call chkmsvc %TMPPRJ%
 
 @echo Build %TMPPRJ% msvc140.x64 %DATE% %TIME% > %TMPLOG%
 
-@if NOT EXIST %TMPSRC%\nul goto NOSRC
-
 @echo Build source %TMPSRC% - all output to build log %TMPLOG%
 @echo Build source %TMPSRC% - all output to build log %TMPLOG% >> %TMPLOG%
+
+@echo Setting environment - CALL "%VC_BAT%" %BUILD_BITS%
+@echo Setting environment - CALL "%VC_BAT%" %BUILD_BITS% >> %TMPLOG%
+@call "%VC_BAT%" %BUILD_BITS% >> %TMPLOG% 2>&1
+@if ERRORLEVEL 1 goto NOSETUP
 
 @if EXIST build-cmake.bat (
 @call build-cmake >> %TMPLOG%
