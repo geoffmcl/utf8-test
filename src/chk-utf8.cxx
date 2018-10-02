@@ -96,6 +96,9 @@ static bool use_wprintf = true;
 static int utf_output = 0;
 static int verbosity = 0;
 static int err_max = 5;
+#ifdef _WIN32
+static int setconsole = 0;
+#endif 
 
 #define VERB1 ( verbosity >= 1 )
 #define VERB2 ( verbosity >= 2 )
@@ -119,6 +122,9 @@ void give_help( char *name )
     printf("options:\n");
     printf(" --help  (-h or -?) = This help and exit(0)\n");
     printf(" --verb[n]     (-v) = Bump or set verbosity. n=0,1,2,5,9 (def=%d)\n", verbosity);
+#ifdef _WIN32
+    printf(" --console     (-c) = Add 'SetConsoleOutputCP(CP_UTF8)' before output, and reset after. (def=%d)\n", setconsole);
+#endif
     printf(" Given an input file, scan it and report any invalid\n");
     printf(" UTF-8 byte sequences.\n");
     // TODO: More help
@@ -159,6 +165,13 @@ int parse_args( int argc, char **argv )
                 if (VERB1)
                     printf("Set verbosity to %d\n", verbosity);
                 break;
+#ifdef _WIN32
+            case 'c':
+                setconsole = 1;
+                if (VERB1)
+                    printf("Set console to CP_UTF8, %d, and reset.\n", CP_UTF8);
+                break;
+#endif
                 // TODO: Other arguments
             default:
                 printf("%s: Unknown argument '%s'. Try -? for help...\n", module, arg);
@@ -185,7 +198,7 @@ void *allocMem(size_t n)
 {
 	void *s;
 	if (!(s = malloc(n))) {
-        fprintf(stderr,"%s: Memory FAILED on %lu bytes!\n", module, n);
+        fprintf(stderr,"%s: Memory FAILED on %d bytes!\n", module, (int)n);
         exit(1);
     }
 	return s;
@@ -250,15 +263,17 @@ void enumCodePages()
 
 void set_console()
 {
-    // enumCodePages();
-    oldcp = GetConsoleOutputCP();
-    SetConsoleOutputCP(CP_UTF8);
-    fprintf(stderr,"%s: Set console to UTF-8 %d, from %d.\n", module, CP_UTF8, oldcp);
-    //prevmode = _setmode(_fileno(stdout), _O_U16TEXT);
+    if (setconsole) {
+        // enumCodePages();
+        oldcp = GetConsoleOutputCP();
+        SetConsoleOutputCP(CP_UTF8);
+        fprintf(stderr, "%s: Set console to UTF-8 %d, from %d.\n", module, CP_UTF8, oldcp);
+        //prevmode = _setmode(_fileno(stdout), _O_U16TEXT);
+    }
 }
 void reset_console()
 {
-    if (oldcp) {
+    if (setconsole && oldcp) {
         SetConsoleOutputCP(oldcp);
         fprintf(stderr,"%s: Reset console to %d.\n", module, oldcp);
     }
@@ -592,7 +607,7 @@ int chk_utf8()
         return 1;
     }
     fprintf(stderr,"%s: Loading file '%s', %lu bytes!\n", module, file, len);
-    res = fread(buf,1,len,fp);
+    res = (long)fread(buf,1,len,fp);
     fclose(fp);
     if (res != len) {
         fprintf(stderr,"%s: Loading FAILED! got %lu bytes!\n", module, res);
