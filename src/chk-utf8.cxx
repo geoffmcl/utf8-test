@@ -82,10 +82,10 @@ typedef UINT DWORD;
 #define ISDIGIT(a) ( ( a >= '0' ) && ( a <= '9' ) )
 #endif
 #ifndef TEST_VERSION
-#define TEST_VERSION "1.0.1"
+#define TEST_VERSION "1.0.2"
 #endif
 #ifndef TEST_DATE
-#define TEST_DATE "2016-11-26"
+#define TEST_DATE "2018-10-02"
 #endif
 
 static const char *module = "chk-utf8";
@@ -131,6 +131,10 @@ int parse_args( int argc, char **argv )
     for (i = 1; i < argc; i++) {
         arg = argv[i];
         i2 = i + 1;
+        if (strcmp(arg, "--version") == 0) {
+            show_version();
+            return 2;
+        }
         if (*arg == '-') {
             sarg = &arg[1];
             while (*sarg == '-')
