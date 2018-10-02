@@ -82,7 +82,7 @@ typedef UINT DWORD;
 #define ISDIGIT(a) ( ( a >= '0' ) && ( a <= '9' ) )
 #endif
 #ifndef TEST_VERSION
-#define TEST_VERSION "1.0.2"
+#define TEST_VERSION "1.0.3"
 #endif
 #ifndef TEST_DATE
 #define TEST_DATE "2018-10-02"
