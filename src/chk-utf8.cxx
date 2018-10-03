@@ -82,10 +82,10 @@ typedef UINT DWORD;
 #define ISDIGIT(a) ( ( a >= '0' ) && ( a <= '9' ) )
 #endif
 #ifndef TEST_VERSION
-#define TEST_VERSION "1.0.3"
+#define TEST_VERSION "1.0.4"
 #endif
 #ifndef TEST_DATE
-#define TEST_DATE "2018-10-02"
+#define TEST_DATE "2018-10-03"
 #endif
 
 static const char *module = "chk-utf8";
@@ -267,7 +267,8 @@ void set_console()
         // enumCodePages();
         oldcp = GetConsoleOutputCP();
         SetConsoleOutputCP(CP_UTF8);
-        fprintf(stderr, "%s: Set console to UTF-8 %d, from %d.\n", module, CP_UTF8, oldcp);
+        if (VERB5)
+            fprintf(stderr, "%s: Set console to UTF-8 %d, from %d.\n", module, CP_UTF8, oldcp);
         //prevmode = _setmode(_fileno(stdout), _O_U16TEXT);
     }
 }
@@ -275,7 +276,8 @@ void reset_console()
 {
     if (setconsole && oldcp) {
         SetConsoleOutputCP(oldcp);
-        fprintf(stderr,"%s: Reset console to %d.\n", module, oldcp);
+        if (VERB5)
+            fprintf(stderr,"%s: Reset console to %d.\n", module, oldcp);
     }
     oldcp = 0;
 }
@@ -489,11 +491,14 @@ int chk_utf8_buffer(uint8_t *buf, long len)
     line = 1;
     col = 1;
     set_console();
-    if (use_printf) {
-        printf("%s: Using simple printf to output the utf-8\n", module );
-    } else {
-        printf("%s: Using eb_puts output the UNICODE %s\n", module,
-           (use_wprintf ? "using wprintf" : "using WriteConsoleW") );
+    if (VERB2) {
+        if (use_printf) {
+            printf("%s: Using simple printf to output the utf-8\n", module);
+        }
+        else {
+            printf("%s: Using eb_puts output the UNICODE %s\n", module,
+                (use_wprintf ? "using wprintf" : "using WriteConsoleW"));
+        }
     }
     for (i = 0; i < len; i++) {
         c = buf[i];
@@ -536,15 +541,18 @@ int chk_utf8_buffer(uint8_t *buf, long len)
                     if (iret)
                         break;
                     utf8[off] = 0;
-                    printf("line:%d col:%d len:%d '", line, col, off);
-                    if (use_printf) {
-                        printf("%s", utf8);
-                    } else {
-                        eb_puts((const char *)utf8); // display the UTF-8 sequence
+                    if (VERB2) {
+                        printf("line:%d col:%d len:%d '", line, col, off);
+                        if (use_printf) {
+                            printf("%s", utf8);
+                        }
+                        else {
+                            eb_puts((const char *)utf8); // display the UTF-8 sequence
+                        }
+                        printf("' ");
+                        printf_hex((const char *)utf8, off);
+                        printf("\n");
                     }
-                    printf("' ");
-                    printf_hex( (const char *)utf8, off );
-                    printf("\n");
                     utf_output++;
                 } else {
                     fprintf(stderr,"%s: Invalid first utf-8 byte 0x%2x!\n", module, c & 0xff);
@@ -559,6 +567,11 @@ int chk_utf8_buffer(uint8_t *buf, long len)
             col += off; // bytes decoded
         } else {
             col++;
+        }
+    }
+    if (!VERB2) {
+        if (utf_output) {
+            printf("%s: Would have output %d utf-8 sequences if '-v2' is set...\n", module, utf_output);
         }
     }
     reset_console();
