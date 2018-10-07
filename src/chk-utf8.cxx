@@ -82,10 +82,10 @@ typedef UINT DWORD;
 #define ISDIGIT(a) ( ( a >= '0' ) && ( a <= '9' ) )
 #endif
 #ifndef TEST_VERSION
-#define TEST_VERSION "1.0.4"
+#define TEST_VERSION "1.0.5"
 #endif
 #ifndef TEST_DATE
-#define TEST_DATE "2018-10-03"
+#define TEST_DATE "2018-10-07"
 #endif
 
 static const char *module = "chk-utf8";
