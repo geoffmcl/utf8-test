@@ -300,153 +300,160 @@ void printf_hex( const char *buf, size_t len )
 #define IS_IN_RANGE(c, f, l)    (((c) >= (f)) && ((c) <= (l)))
 
 //u_long readNextChar(char *& p, int len) 
-int getNextSeqLen(char *& p, int len, u_long *puc) 
+int getNextSeqLen(char *& p, int datalen, u_long *puc)
 {  
-    u_char c1, c2, first, *ptr = (u_char *) p;
-    u_long uc = 0;
-    int seqlen = 0;
-    int datalen = len; // available length of p ...;    
-    int i, j;
 
-    if( datalen < 1 )
+    u_char c1, c2, *ptr = (u_char*)p;
+    u_long uc = 0;
+    int seqlen;
+    // int datalen = ... available length of p ...;    
+    if (datalen < 1)
     {
         // malformed data, do something !!!
-        if (VERB1) {
-            printf("Err: No data length!\n");
-        }
-        return -1;
+        return (u_long)-1;
     }
 
     c1 = ptr[0];
-    first = c1;
-    if( (c1 & 0x80) == 0 )
+
+    if ((c1 & 0x80) == 0)
     {
-        uc = (u_long) (c1 & 0x7F);
+        uc = (u_long)(c1 & 0x7F);
         seqlen = 1;
     }
-    else if( (c1 & 0xE0) == 0xC0 )
+    else if ((c1 & 0xE0) == 0xC0)
     {
-        uc = (u_long) (c1 & 0x1F);
+        uc = (u_long)(c1 & 0x1F);
         seqlen = 2;
     }
-    else if( (c1 & 0xF0) == 0xE0 )
+    else if ((c1 & 0xF0) == 0xE0)
     {
-        uc = (u_long) (c1 & 0x0F);
+        uc = (u_long)(c1 & 0x0F);
         seqlen = 3;
     }
-    else if( (c1 & 0xF8) == 0xF0 )
+    else if ((c1 & 0xF8) == 0xF0)
     {
-        uc = (u_long) (c1 & 0x07);
+        uc = (u_long)(c1 & 0x07);
         seqlen = 4;
     }
     else
     {
         // malformed data, do something !!!
-        if (VERB1) {
-            printf("Err: First char %02x NOT a valid lead byte!\n", (c1 & 0xff));
-        }
-        return -1;
+        return (u_long)-1;
     }
 
-    if( seqlen > datalen )
+    if (seqlen > datalen)
     {
         // malformed data, do something !!!
-        if (VERB1) {
-            printf("Err: Sequence len %d GT data len %d\n", seqlen, datalen);
-        }
-        return -1;
+        return (u_long)-1;
     }
 
-    for(i = 1; i < seqlen; ++i)
+    for (int i = 1; i < seqlen; ++i)
     {
         c1 = ptr[i];
 
-        if( (c1 & 0xC0) != 0x80 )
+        if ((c1 & 0xC0) != 0x80)
         {
             // malformed data, do something !!!
-            if ((VERB9) || ((seq_errs < err_max) && VERB1)) 
-            {
-                switch (seqlen)
-                {
-                case 2:
-                    printf("Err: First uchar %02x, len %d, followed by %02x is invalid!\n", (first & 0xff),
-                        seqlen, (c1 & 0xff));
-                    break;
-                case 3:
-                case 4:
-                    if (i > 1) {
-                        printf("Err: First uchars %02x, ", (first & 0xff));
-                        for (j = 1; j < i; j++) {
-                            printf("%02x, ", (ptr[j] & 0xff));
-                        }
-                        printf("len %d, followed by %02x is invalid!\n", seqlen, (c1 & 0xff));
-                    }
-                    else {
-                        printf("Err: First uchar %02x, len %d, followed by %02x is invalid!\n", (first & 0xff),
-                            seqlen, (c1 & 0xff));
-                    }
-                    break;
-                }
-            }
-            return -1;
+            return (u_long)-1;
         }
     }
 
-    switch( seqlen )
+    switch (seqlen)
     {
-        case 2:
+    case 2:
+    {
+        c1 = ptr[0];
+
+        if (!IS_IN_RANGE(c1, 0xC2, 0xDF))
         {
-            c1 = ptr[0];
-
-            if( !IS_IN_RANGE(c1, 0xC2, 0xDF) )
-            {
-                // malformed data, do something !!!
-                return -1;
-            }
-
-            break;
+            // malformed data, do something !!!
+            return (u_long)-1;
         }
 
-        case 3:
-        {
-            c1 = ptr[0];
-            c2 = ptr[1];
-
-            if( ((c1 == 0xE0) && !IS_IN_RANGE(c2, 0xA0, 0xBF)) ||
-                ((c1 == 0xED) && !IS_IN_RANGE(c2, 0x80, 0x9F)) ||
-                (!IS_IN_RANGE(c1, 0xE1, 0xEC) && !IS_IN_RANGE(c1, 0xEE, 0xEF)) )
-            {
-                // malformed data, do something !!!
-                return -1;
-            }
-
-            break;
-        }
-
-        case 4:
-        {
-            c1 = ptr[0];
-            c2 = ptr[1];
-
-            if( ((c1 == 0xF0) && !IS_IN_RANGE(c2, 0x90, 0xBF)) ||
-                ((c1 == 0xF4) && !IS_IN_RANGE(c2, 0x80, 0x8F)) ||
-                !IS_IN_RANGE(c1, 0xF1, 0xF3) )
-            {
-                // malformed data, do something !!!
-                return -1;
-            }
-
-            break;
-        }
+        break;
     }
 
-    for(int i = 1; i < seqlen; ++i)
+    case 3:
+    {
+        c1 = ptr[0];
+        c2 = ptr[1];
+
+        switch (c1)
+        {
+        case 0xE0:
+            if (!IS_IN_RANGE(c2, 0xA0, 0xBF))
+            {
+                // malformed data, do something !!!
+                return (u_long)-1;
+            }
+            break;
+
+        case 0xED:
+            if (!IS_IN_RANGE(c2, 0x80, 0x9F))
+            {
+                // malformed data, do something !!!
+                return (u_long)-1;
+            }
+            break;
+
+        default:
+            if (!IS_IN_RANGE(c1, 0xE1, 0xEC) && !IS_IN_RANGE(c1, 0xEE, 0xEF))
+            {
+                // malformed data, do something !!!
+                return (u_long)-1;
+            }
+            break;
+        }
+
+        break;
+    }
+
+    case 4:
+    {
+        c1 = ptr[0];
+        c2 = ptr[1];
+
+        switch (c1)
+        {
+        case 0xF0:
+            if (!IS_IN_RANGE(c2, 0x90, 0xBF))
+            {
+                // malformed data, do something !!!
+                return (u_long)-1;
+            }
+            break;
+
+        case 0xF4:
+            if (!IS_IN_RANGE(c2, 0x80, 0x8F))
+            {
+                // malformed data, do something !!!
+                return (u_long)-1;
+            }
+            break;
+
+        default:
+            if (!IS_IN_RANGE(c1, 0xF1, 0xF3))
+            {
+                // malformed data, do something !!!
+                return (u_long)-1;
+            }
+            break;
+        }
+
+        break;
+    }
+    }
+
+    for (int i = 1; i < seqlen; ++i)
     {
         uc = ((uc << 6) | (u_long)(ptr[i] & 0x3F));
     }
-    *puc = uc;      // unicodeChar; 
+
+    if (puc)
+        *puc = uc;      // unicodeChar; 
     p += seqlen;
-    return seqlen;  
+    // return uc;
+    return seqlen;
 }
 
 int chk_buffer_sequences( uint8_t *buf, long ilen )
@@ -454,6 +461,7 @@ int chk_buffer_sequences( uint8_t *buf, long ilen )
     char *p = (char *)buf;
     int c, i, res, len = ilen;
     char *nxt;
+    bool in_err = false;
     for (i = 0; i < len; i++) {
         u_long uc = 0;
         c = buf[i];
@@ -466,9 +474,12 @@ int chk_buffer_sequences( uint8_t *buf, long ilen )
                 i += res;
                 multi_count++;
             }
+            in_err = false;
         } else {
-            seq_errs++;
+            if (!in_err)
+                seq_errs++;
             p++;    // bump just one char
+            in_err = true;
         }
         char_count++;
     }
@@ -633,7 +644,11 @@ int chk_utf8()
 #endif // #ifdef _WIN32
     
     free(buf);
-    fprintf(stderr,"%s: Output %d UTF-8 characters found.\n", module, utf_output);
+    if (utf_output)
+        fprintf(stderr,"%s: Found %d multibyte UTF-8 characters. ", module, utf_output);
+    else
+        fprintf(stderr, "%s: No multibyte UTF-8 characters found in %d chars. ", module, (int)len);
+    fprintf(stderr, "exit(%d)\n", iret);
     return iret;
 }
 
