@@ -22,6 +22,9 @@
 @set TMPOPTS=-DCMAKE_INSTALL_PREFIX=%TMPINS%
 @if EXIST X:\3rdParty.x64\nul (
 @set TMPOPTS=%TMPOPTS% -DCMAKE_PREFIX_PATH:PATH=X:\3rdParty.x64
+) else (
+@echo Can NOT locate X:\3rdParty.x64! *** FIX ME ***
+@exit /b 1
 )
 @set TMPOPTS=%TMPOPTS% -G "%GENERATOR%"
 
