@@ -81,8 +81,11 @@ int main()
     uint8_t chars[MY_MX_BUF+2];
     for(;;)
     {
-        std::cout << "Enter unicode value : 0 to exit" << std::endl;
-        std::cin >> charcode; 
+        std::cout << "Enter unicode decimal value : 0, or alpha, to exit" << std::endl;
+        if (!(std::cin >> charcode)) {
+            std::cout << "Failed to get an integer!" << std::endl;
+            break;
+        }
         if (charcode == 0)
             break;
         std::deque<int> x = unicode_to_utf8(charcode);
