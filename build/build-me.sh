@@ -4,6 +4,7 @@ BN=`basename $0`
 TMPPRJ="utf8-test"
 TMPLOG="bldlog-1.txt"
 TMPOPTS=""
+TMPINST="$HOME"
 # Possible options to help with problems
 # TMPOPTS="$TMPOPTS -DCMAKE_VERBOSE_MAKEFILE=ON"
 
@@ -12,7 +13,7 @@ for arg in $@; do
 done
 
 if [ -z "$TMPOPTS" ]; then
-	TMPOPTS="-DCMAKE_INSTALL_PREFIX=$HOME"
+	TMPOPTS="-DCMAKE_INSTALL_PREFIX=$TMPINST"
 fi
 if [ -f "$TMPLOG" ]; then
     rm -f $TMPLOG
@@ -40,7 +41,7 @@ fi
 
 echo "Appears a successful build..."
 
-echo "Perhaps follow with 'make install', to install to $HONE/bin unless changed..."
+echo "Perhaps follow with 'make install', to install to '$TMPINST/bin', unless changed..."
 
 
 # eof

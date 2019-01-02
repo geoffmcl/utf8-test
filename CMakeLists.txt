@@ -113,7 +113,7 @@ if (MSVC)
     set_target_properties( ${name} PROPERTIES DEBUG_POSTFIX d )
 endif ()
 # deal with install, if any...
-#install( TARGETS ${name} DESTINATION bin )
+install( TARGETS ${name} DESTINATION bin )
 
 set(name chk-utf8)
 set(dir src)
@@ -128,7 +128,7 @@ if (MSVC)
     set_target_properties( ${name} PROPERTIES DEBUG_POSTFIX d )
 endif ()
 # deal with install, if any...
-#install( TARGETS ${name} DESTINATION bin )
+install( TARGETS ${name} DESTINATION bin )
 
 set(name uni2utf8)
 set(dir src)
@@ -143,7 +143,7 @@ if (MSVC)
     set_target_properties( ${name} PROPERTIES DEBUG_POSTFIX d )
 endif ()
 # deal with install, if any...
-#install( TARGETS ${name} DESTINATION bin )
+install( TARGETS ${name} DESTINATION bin )
 
 set(name chk-BOM)
 set(dir src)
@@ -158,7 +158,7 @@ if (MSVC)
     set_target_properties( ${name} PROPERTIES DEBUG_POSTFIX d )
 endif ()
 # deal with install, if any...
-#install( TARGETS ${name} DESTINATION bin )
+install( TARGETS ${name} DESTINATION bin )
 
 if (WIN32)
     set(name chk-con)
@@ -174,7 +174,7 @@ if (WIN32)
         set_target_properties( ${name} PROPERTIES DEBUG_POSTFIX d )
     endif ()
     # deal with install, if any...
-    #install( TARGETS ${name} DESTINATION bin )
+    install( TARGETS ${name} DESTINATION bin )
 endif ()
 
 # eof

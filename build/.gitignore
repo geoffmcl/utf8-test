@@ -19,4 +19,5 @@ chk-BOM
 chk-utf8
 liblangdict.a
 uni2utf8
+install_manifest.txt
 
