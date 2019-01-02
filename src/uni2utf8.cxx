@@ -7,13 +7,48 @@
 \*/
 /*\
  * from : http://stackoverflow.com/questions/18534494/convert-from-utf-8-to-unicode-c
+ * Per FR #4 seems this app should do more, like read from a utf16 file, and convert...
+ * some example code : https://stackoverflow.com/questions/20419605/how-to-convert-unicode-code-points-to-utf-8-in-c
 \*/
 #include <iostream>
 #include <deque>
 #include <stdio.h>
 #include <stdint.h>
 
-static const char *module = "utf8-2-unicode";
+
+#include <iostream>
+#include <locale>
+#include <vector>
+
+static const char *module = "utf16-2-utf8";
+
+int test1_main()
+{
+    int iret = 0;
+    typedef std::codecvt<wchar_t, char, mbstate_t> Convert;
+    std::wstring w = L"\u20ac\u20ab\u20ac";
+    //std::locale locale("en_GB.utf8");
+    std::locale locale("en");
+    const Convert& convert = std::use_facet<Convert>(locale);
+
+    std::mbstate_t state;
+    const wchar_t* from_ptr;
+    char* to_ptr;
+    std::vector<char> result(3 * w.size() + 1, 0);
+    Convert::result convert_result = convert.out(state,
+        w.c_str(), w.c_str() + w.size(), from_ptr,
+        result.data(), result.data() + result.size(), to_ptr);
+
+    if (convert_result == Convert::ok) {
+        std::cout << result.data() << std::endl;
+    }
+    else {
+        iret = 1;
+        std::cout << "Failure: " << convert_result << std::endl;
+    }
+    return iret;
+}
+
 
 #define MY_MX_BUF   16
 
@@ -77,8 +112,10 @@ int utf8_to_unicode(std::deque<int> &coded)
 
 int main()
 {
+    int iret = 0;
     int charcode, off; 
     uint8_t chars[MY_MX_BUF+2];
+    //iret = test1_main();
     for(;;)
     {
         std::cout << "Enter unicode decimal value : 0, or alpha, to exit" << std::endl;
@@ -104,7 +141,8 @@ int main()
         int c = utf8_to_unicode(x);
         std::cout << "reversed : " << std::dec << c << std::hex << " in hex:" << c << std::endl;
     }
+    return iret;
 }
 
-// eof = utf8-2-unicode.cxx
+// eof = utf16-2-utf8.cxx
 
