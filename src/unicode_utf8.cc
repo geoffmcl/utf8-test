@@ -334,6 +334,11 @@ int collect_hex(const char * buf, size_t len, unsigned int *pui)
     long l = hexdec(buf);
     if (l >= 0) {
         n = (unsigned int)l;
+        if (n > 0x1fffff) {
+            printf("Value '%s' too large to be a codepoint! Max. 0x1fffff - %lu - got %lu\n", buf, 0x1fffff, n);
+            return 0;
+        }
+
         *pui = n;
         return 1;
     }
@@ -358,8 +363,18 @@ int collect_hex(const char * buf, size_t len, unsigned int *pui)
             return 0;
             break;
         }
+        if (n > 0x1fffff) {
+            printf("Value '%s' too large to be a codepoint! Max. 0x1fffff - %lu - got %lu\n", buf, 0x1fffff, n);
+            return 0;
+        }
     }
     if (cnt && (*p == 0)) {
+
+        if (n > 0x1fffff) {
+            printf("Value '%s' too large to be a codepoint! Max. 0x1fffff - %lu - got %lu\n", buf, 0x1fffff, n);
+            return 0;
+        }
+
         *pui = n;
         return cnt;
     }
@@ -397,6 +412,12 @@ int collect_dec(const char * buf, size_t len, unsigned int *pui)
         }
     }
     if (cnt && (*p == 0)) {
+
+        if (n > 0x1fffff) {
+            printf("Value '%s' too large to be a codepoint! Max. 0x1fffff - %lu - got %lu\n", buf, 0x1fffff, n);
+            return 0;
+        }
+
         *pui = n;
         return cnt;
     }
