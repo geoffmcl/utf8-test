@@ -1,6 +1,10 @@
-# UTF8 TEST Project 20171102
+# UTF8 TEST Project 20190912 - 20171102 
 
-Found a header only utf8 cpp source at https://sourceforge.net/projects/utfcpp/, and this small project generates a utf8-test app using that header source.
+Just some C/C++ scraps, written, or scraped from various sources, with an aim to understand, experiment with utf-8... a variable width character encoding capable of encoding all 1,112,064 valid code points in Unicode using one to four 8-bit bytes... all test, experimental, WIP, ...
+
+Like, found a header only utf8 cpp source at https://sourceforge.net/projects/utfcpp/, and this small project generates a utf8-test app using that header source.
+
+Others listed below...
 
 ### Prerequisites:
 
@@ -58,9 +62,13 @@ Read the first up to 8 bytes from the input files, and attempt to identify if it
 
 Some experiments including and compiling and outputing UTF-8 characters. Used by chk-con only.
 
+#### unicode_utf8
+
+Given a decimal, or hexadecimal code point input, show, and output the utf-8 sequence...
+
 Have FUN!
 
 Geoff.  
-20171102 - 20160127 - 20151209 - 20150420
+20190912 - 20171102 - 20160127 - 20151209 - 20150420
 
 ; eof
