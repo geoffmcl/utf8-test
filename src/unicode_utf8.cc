@@ -47,16 +47,27 @@ static const char *module = "unicode_utf8";
 
 static const char *usr_input = 0;
 
+#ifndef UTF8T_VERSION
+#define UTF8T_VERSION "No test version given"
+#endif // default UTF8T_VERSION
+
+void show_version()
+{
+    printf("%s: utf8-test Suite Version %s\n", module, UTF8T_VERSION);
+}
+
 void give_help(char *name)
 {
+    show_version();
     printf("%s: usage: [options] usr_input\n", module);
     printf("Options:\n");
     printf(" --help  (-h or -?) = This help and exit(0)\n");
+    printf(" --version     (-V) = Show test suite version, and exit(0)\n");
     printf(" --show        (-s) = Show compiled widths, of char,int,etc - exit(1) for DEBUG only!\n");
     printf("\n");
     printf("  Give a codepoint, in hex, prefixed with 'U+' or '0x', else assumed\n");
     printf("  decimal value.\n");
-    printf("  Try to convert the input to a code point, and convert\n");
+    printf("  Try to read the input as a unicode codepoint, and convert\n");
     printf("  that to UTF-8, and show...");
 }
 
@@ -81,6 +92,12 @@ int parse_args(int argc, char **argv)
     for (i = 1; i < argc; i++) {
         arg = argv[i];
         i2 = i + 1;
+
+        if (strcmp(arg, "--version") == 0) {
+            show_version();
+            return 2;
+        }
+
         if (*arg == '-') {
             sarg = &arg[1];
             while (*sarg == '-')
@@ -91,7 +108,9 @@ int parse_args(int argc, char **argv)
             case '?':
                 give_help(argv[0]);
                 return 2;
-                break;
+            case 'V':
+                show_version();
+                return 2;
             case 's':
                 show_widths();
                 // TODO: Other arguments

@@ -7,10 +7,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 project( utf8-test )
 
-# The version number.
-set( utf8-test_MAJOR 2 )
-set( utf8-test_MINOR 3 )
-set( utf8-test_POINT 4 )
+# 20190912: Expose UTF8T_VERSION, the test suite version number.
+set( utf8t_MAJOR 3 )
+set( utf8t_MINOR 0 )
+set( utf8t_POINT 0 )
 
 
 # Allow developer to select is Dynamic or static library built
@@ -61,6 +61,9 @@ if(BUILD_SHARED_LIB)
 else()
    message(STATUS "*** Option BUILD_SHARED_LIB is OFF ${LIB_TYPE}")
 endif()
+
+# 20190912: Expose UTF8T_VERSION, the test suite version.
+add_definitions( -DUTF8T_VERSION="${utf8t_MAJOR}.${utf8t_MINOR}.${utf8t_POINT}" )
 
 #  DIRENT_FOUND - System has dirent
 #  DIRENT_INCLUDE_DIRS - The dirent.h include directories
