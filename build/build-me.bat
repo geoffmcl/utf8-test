@@ -4,7 +4,7 @@
 @set TMPPRJ=utf8-test
 @set TMPSRC=..
 @set TMPBGN=%TIME%
-@set TMPINS=..\..\software
+@set TMPINS=D:\Projects\3rdParty.x64
 @set DOTINST=0
 @set TMPLOG=bldlog-1.txt
 

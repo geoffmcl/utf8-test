@@ -566,12 +566,13 @@ int chk_utf8_buffer(uint8_t *buf, long len)
                     }
                     utf_output++;
                 } else {
-                    fprintf(stderr,"%s: Invalid first utf-8 byte 0x%2x!\n", module, c & 0xff);
+                    fprintf(stderr,"%s:%d:%d: Invalid first utf-8 byte 0x%2x!\n", module, line, col, c & 0xff);
                     iret = 1;
                     break;
                 }
             } else {
-                fprintf(stderr,"%s: Invalid first utf-8 byte 0x%2x!\n", module, c & 0xff);
+                //fprintf(stderr,"%s: Invalid first utf-8 byte 0x%2x!\n", module, c & 0xff);
+                fprintf(stderr, "%s:%d:%d: Invalid first utf-8 byte 0x%2x!\n", module, line, col, c & 0xff);
                 iret = 1;
                 break;
             }

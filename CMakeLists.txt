@@ -68,7 +68,7 @@ add_definitions( -DUTF8T_VERSION="${utf8t_MAJOR}.${utf8t_MINOR}.${utf8t_POINT}" 
 #  DIRENT_FOUND - System has dirent
 #  DIRENT_INCLUDE_DIRS - The dirent.h include directories
 #  DIRENT_LIBRARIES - The static library needed to use dirent
-find_package( Dirent )
+find_package( DIRENT )
 if (DIRENT_FOUND)
     message(STATUS "*** Found Dirent inc ${DIRENT_INCLUDE_DIRS}, lib ${DIRENT_LIBRARIES}")
     include_directories( ${DIRENT_INCLUDE_DIRS} )

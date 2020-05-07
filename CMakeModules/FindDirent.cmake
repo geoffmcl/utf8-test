@@ -6,7 +6,7 @@
 #  DIRENT_LIBRARIES - The static library needed to use dirent
 # 
 
-message(STATUS "*** Looking for dirent...")
+message(STATUS "*** Looking for Dirent...")
 find_path(DIRENT_INCLUDE_DIR dirent.h
           HINTS ENV DIRENT_ROOT_DIR
           PATH_SUFFIXES include 
