@@ -21,4 +21,5 @@ liblangdict.a
 uni2utf8
 install_manifest.txt
 x64/*
+unicode_utf8
 

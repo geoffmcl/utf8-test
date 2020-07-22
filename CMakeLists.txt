@@ -65,6 +65,7 @@ endif()
 # 20190912: Expose UTF8T_VERSION, the test suite version.
 add_definitions( -DUTF8T_VERSION="${utf8t_MAJOR}.${utf8t_MINOR}.${utf8t_POINT}" )
 
+if(WIN32)
 #  DIRENT_FOUND - System has dirent
 #  DIRENT_INCLUDE_DIRS - The dirent.h include directories
 #  DIRENT_LIBRARIES - The static library needed to use dirent
@@ -77,6 +78,10 @@ if (DIRENT_FOUND)
 else ()
     message(STATUS "*** Dirent NOT FOUND!")
 endif ()
+else()
+# assume this is ALWAYS available in unix/linux/mac
+add_definitions( -DHAVE_DIRENT_H=1 )
+endif()
 
 # for utf8.h header
 include_directories( src/source )

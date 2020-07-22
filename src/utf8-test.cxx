@@ -76,7 +76,10 @@ static struct stat buf;
 DiskType is_file_or_directory32 ( const char * path )
 {
     if (!path)
+    {
         return MDT_NONE;
+    }
+
 	if (stat(path,&buf) == 0)
 	{
 		if (buf.st_mode & M_IS_DIR)
@@ -550,7 +553,7 @@ int parse_args( int argc, char **argv )
                 printf("%s: Already have input '%s'! What is this '%s'?\n", module, usr_input, arg );
                 return 1;
             }
-            if (is_file_or_directory32(arg) != DT_FILE) {
+            if (is_file_or_directory32(arg) != MDT_FILE) {
                 printf("%s: Unable to 'stat' file '%s'!\n", module, arg );
                 return 1;
             }
