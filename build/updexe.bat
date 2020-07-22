@@ -75,6 +75,43 @@ copy %TMPSRC% %TMPDST%
 @echo.
 :DNFILE2
 
+@set TMPFIL1=chk-utf8.exe
+@set TMPFIL2=%TMPFIL1%
+@set TMPSRC=Release\%TMPFIL1%
+@if NOT EXIST %TMPSRC% goto ERR1
+@echo Current source %TMPSRC%
+@call dirmin %TMPSRC%
+
+@if NOT EXIST %TMPDIR%\nul goto ERR2
+@set TMPDST=%TMPDIR%\%TMPFIL2%
+@if NOT EXIST %TMPDST% goto DOCOPY2
+
+@echo Current destination %TMPDST%
+@call dirmin %TMPDST%
+
+@REM Compare
+@fc4 -q -v0 -b %TMPSRC% %TMPDST% >nul
+@if ERRORLEVEL 2 goto NOFC43
+@if ERRORLEVEL 1 goto DOCOPY3
+@echo.
+@echo Files are the SAME... Nothing done...
+@echo.
+@goto DNFILE3
+
+:NOFC43
+@echo Can NOT run fc4! so doing copy...
+:DOCOPY3
+@echo Will do: 'copy %TMPSRC% %TMPDST%'
+@choice /D N /T 10 /M "Pausing for 10 seconds. Def=N"
+if ERRORLEVEL 2 goto DNFILE3
+copy %TMPSRC% %TMPDST%
+@if NOT EXIST %TMPDST% goto ERR3
+@call dirmin %TMPDST%
+@echo.
+@echo Done file update...
+@echo.
+:DNFILE3
+
 
 @goto END
 
