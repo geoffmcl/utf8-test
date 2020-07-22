@@ -7,11 +7,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 project( utf8-test )
 
-# 20190912: Expose UTF8T_VERSION, the test suite version number.
-set( utf8t_MAJOR 3 )
+# 20190912: Expose TEST_VERSION, the test suite version number.
+set( utf8t_MAJOR 1 )
 set( utf8t_MINOR 0 )
-set( utf8t_POINT 0 )
-
+set( utf8t_POINT 6 )
+set( TEST_DATE "2020-07-22" )
 
 # Allow developer to select is Dynamic or static library built
 set( LIB_TYPE STATIC )  # set default static
@@ -63,24 +63,25 @@ else()
 endif()
 
 # 20190912: Expose UTF8T_VERSION, the test suite version.
-add_definitions( -DUTF8T_VERSION="${utf8t_MAJOR}.${utf8t_MINOR}.${utf8t_POINT}" )
+add_definitions( -DTEST_VERSION="${utf8t_MAJOR}.${utf8t_MINOR}.${utf8t_POINT}" )
+add_definitions( -DTEST_DATE="${TEST_DATE}" )
 
 if(WIN32)
-#  DIRENT_FOUND - System has dirent
-#  DIRENT_INCLUDE_DIRS - The dirent.h include directories
-#  DIRENT_LIBRARIES - The static library needed to use dirent
-find_package( DIRENT )
-if (DIRENT_FOUND)
-    message(STATUS "*** Found Dirent inc ${DIRENT_INCLUDE_DIRS}, lib ${DIRENT_LIBRARIES}")
-    include_directories( ${DIRENT_INCLUDE_DIRS} )
-    list(APPEND add_LIBS ${DIRENT_LIBRARIES} )
-    add_definitions( -DHAVE_DIRENT_H=1 )
-else ()
-    message(STATUS "*** Dirent NOT FOUND!")
-endif ()
+    #  DIRENT_FOUND - System has dirent
+    #  DIRENT_INCLUDE_DIRS - The dirent.h include directories
+    #  DIRENT_LIBRARIES - The static library needed to use dirent
+    find_package( DIRENT )
+    if (DIRENT_FOUND)
+        message(STATUS "*** Found Dirent inc ${DIRENT_INCLUDE_DIRS}, lib ${DIRENT_LIBRARIES}")
+        include_directories( ${DIRENT_INCLUDE_DIRS} )
+        list(APPEND add_LIBS ${DIRENT_LIBRARIES} )
+        add_definitions( -DHAVE_DIRENT_H=1 )
+    else ()
+        message(STATUS "*** Dirent NOT FOUND!")
+    endif ()
 else()
-# assume this is ALWAYS available in unix/linux/mac
-add_definitions( -DHAVE_DIRENT_H=1 )
+    # assume this is ALWAYS available in unix/linux/mac
+    add_definitions( -DHAVE_DIRENT_H=1 )
 endif()
 
 # for utf8.h header

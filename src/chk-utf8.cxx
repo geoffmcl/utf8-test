@@ -82,10 +82,10 @@ typedef UINT DWORD;
 #define ISDIGIT(a) ( ( a >= '0' ) && ( a <= '9' ) )
 #endif
 #ifndef TEST_VERSION
-#define TEST_VERSION "1.0.5"
+#define TEST_VERSION "1.0.6"
 #endif
 #ifndef TEST_DATE
-#define TEST_DATE "2018-10-07"
+#define TEST_DATE "2020-07-22"
 #endif
 
 static const char *module = "chk-utf8";
@@ -645,11 +645,21 @@ int chk_utf8()
 #endif // #ifdef _WIN32
     
     free(buf);
+
+#ifdef _WIN32
     if (utf_output)
         fprintf(stderr,"%s: Found %d multibyte UTF-8 characters. ", module, utf_output);
     else
         fprintf(stderr, "%s: No multibyte UTF-8 characters found in %d chars. ", module, (int)len);
     fprintf(stderr, "exit(%d)\n", iret);
+#else // !_WIN32
+    if (multi_count)
+        fprintf(stderr, "%s: Found %d multibyte UTF-8 characters. ", module, multi_count);
+    else
+        fprintf(stderr, "%s: No multibyte UTF-8 characters found in %d chars. ", module, (int)len);
+    fprintf(stderr, "exit(%d)\n", iret);
+#endif // _WIN32 y/n
+
     return iret;
 }
 

@@ -47,13 +47,13 @@ static const char *module = "unicode_utf8";
 
 static const char *usr_input = 0;
 
-#ifndef UTF8T_VERSION
-#define UTF8T_VERSION "No test version given"
-#endif // default UTF8T_VERSION
+#ifndef TEST_VERSION
+#define TEST_VERSION "No TEST_VERSION given"
+#endif // default TEST_VERSION
 
 void show_version()
 {
-    printf("%s: utf8-test Suite Version %s\n", module, UTF8T_VERSION);
+    printf("%s: utf8-test Suite Version %s\n", module, TEST_VERSION);
 }
 
 void give_help(char *name)
