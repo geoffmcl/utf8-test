@@ -7,11 +7,55 @@
 @goto NOFC4
 :GOTFC4
 
-@set TMPEXES=chk-BOM.exe chk-con.exe chk-utf8.exe uni2utf8.exe unicode_utf8.exe utf8-test.exe
+@if NOT EXIST %TMPDST%\nul goto NODST
 
-@for %%i in (%TMPEXES%) do @(call :CHKIT %%i)
+@set TMPCNT1=0
+@set TMPCNT2=0
+@set TMPEXES=chk-BOM.exe chk-con.exe chk-utf8.exe uni2utf8.exe unicode_utf8.exe utf8-test.exe
+@set TMPUPDS=
+
+@for %%i in (%TMPEXES%) do @(call :CNTIT %%i)
+
+@echo.
+@if "%TMPCNT2%x" == "0x" (
+@echo Checked: %TMPEXES%
+@echo.
+@echo Of files %TMPCNT1% files checked, ***NONE*** need as update...
+@echo.
+@goto END
+)
+
+@echo Have %TMPCNT2% to update...
+@echo Updates: %TMPUPDS%
+@pause
+
+
+@for %%i in (%TMPUPDS%) do @(call :CHKIT %%i)
 
 @goto END
+
+:CNTIT
+@if "%~1x" == "x" goto :EOF
+@set TMPEXE=%1
+@set TMPSRC=Release\%TMPEXE%
+@set TMPFIL=%TMPDST%\%TMPEXE%
+
+@REM sanity checks
+@if NOT EXIST %TMPSRC% goto :EOF
+
+@set /A TMPCNT1+=1
+
+@if NOT EXIST %TMPFIL% goto ISCOPY
+
+@fc4 -q -v0 %TMPSRC% %TMPFIL% >nul
+
+@if ERRORLEVEL 1 goto ISCOPY
+@goto :EOF
+
+:ISCOPY
+@set TMPUPDS=%TMPUPDS% %1
+@set /A TMPCNT2+=1
+@goto :EOF
 
 :CHKIT
 @if "%~1x" == "x" goto :EOF
@@ -21,7 +65,6 @@
 
 @REM sanity checks
 @if NOT EXIST %TMPSRC% goto NOSRC
-@if NOT EXIST %TMPDST%\nul goto NODST
 
 @if NOT EXIST %TMPFIL% goto DOCOPY
 
@@ -32,11 +75,11 @@
 @echo Files %TMPSRC% and %TMPFIL% appear exactly the SAME
 @echo *** Nothing to do here... ***
 @echo.
-@goto END
+@goto :EOF
 
 :DOCOPY
 copy %TMPSRC% %TMPFIL%
-@goto END
+@goto :EOF
 
 :NOSRC
 @echo Can NOT locate src %TMPSRC%! *** FIX ME ***
@@ -55,6 +98,5 @@ copy %TMPSRC% %TMPFIL%
 @echo change this batch to use another binary comare utility...
 @pause
 @goto NOFC4
-
 
 :END
